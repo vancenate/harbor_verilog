@@ -13,7 +13,6 @@ dout - 1 if the binary representation is a palindrome, 0 otherwise
 
 **Implement your solution in `/workspace/solution_core.sv` only.**
 
-- Do NOT modify `solution_top.sv` (it is provided and contains the top-level module and assertions)
 - Do NOT modify the `solution_core` module signature below
 - Only add your routing logic inside the `solution_core` module
 
