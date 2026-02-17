@@ -1,0 +1,17 @@
+[options]
+mode bmc
+depth 8
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal solution_core.sv
+read -formal solution_assertions.sv
+read -formal solution_top.sv
+prep -top solution_top
+
+[files]
+solution_top.sv
+solution_core.sv
+solution_assertions.sv
