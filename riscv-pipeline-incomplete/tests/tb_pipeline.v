@@ -75,8 +75,12 @@ begin
     end
 end
 
-// Addition test: program done when exception is raised; result must be in regs[15] = 102 (100+2)
+// Program done when exception is raised; result must be in regs[15]. Override with -DEXPECTED_RESULT=n.
+`ifdef EXPECTED_RESULT
+localparam EXPECTED_RESULT = 32'd`EXPECTED_RESULT;
+`else
 localparam EXPECTED_RESULT = 32'd102;
+`endif
 
 always @(posedge clk)
 begin
