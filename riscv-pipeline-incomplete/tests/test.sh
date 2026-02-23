@@ -37,6 +37,7 @@ cp /workspace/execute.v /logs/verifier/workspace/execute.v
 cd /tests
 IMEM_DMEM="/tests/imem_dmem"
 SUITES="/tests/suites"
+mkdir -p "$IMEM_DMEM"
 
 RUN_LOG="/logs/verifier/run.log"
 

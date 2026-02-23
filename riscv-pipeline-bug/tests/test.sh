@@ -1,36 +1,46 @@
 #!/bin/bash
 # Verifier for 3-stage RISC-V pipeline task.
-# Expects agent to provide /workspace/pipeline.v (module pipe) and optional other .v/.vh.
-# Runs addition, sort, negative, fibonacci, shifting, then xor; ALL must PASS for reward 1.
+# Requires all five design files in /workspace/: pipeline.v, IF_ID.v, execute.v, wb.v, opcode.vh. Missing any = fail.
+# Runs addition, load_use, sort, negative, fibonacci, shifting, xor; ALL must PASS for reward 1.
 
 set -e
 
 echo "=== 3-stage RISC-V pipeline verifier ==="
 
-# Require pipeline entry point
-if [ ! -f /workspace/pipeline.v ]; then
-    echo "ERROR: /workspace/pipeline.v not found."
+# Require all five design files (verifier fails if any are missing)
+REQUIRED_FILES="pipeline.v IF_ID.v execute.v wb.v opcode.vh"
+missing=""
+for f in $REQUIRED_FILES; do
+    if [ ! -f "/workspace/$f" ]; then
+        missing="$missing $f"
+    fi
+done
+if [ -n "$missing" ]; then
+    echo "ERROR: Required file(s) missing in /workspace/:$missing"
+    echo "Provide all five design files; do not delete or omit any."
     echo 0 > /logs/verifier/reward.txt
     exit 1
 fi
 
-# Copy all workspace files into tests (do not overwrite tb or memory)
+# Copy design files into tests
 mkdir -p /logs/verifier/vcd
 mkdir -p /logs/verifier/workspace
-for f in /workspace/*; do
-    [ -f "$f" ] || continue
-    case "$(basename "$f")" in
-        tb_pipeline.v|memory.v) ;;
-        *) cp "$f" /tests/
-           cp "$f" /logs/verifier/workspace/ 2>/dev/null || true ;;
-    esac
+for f in pipeline.v IF_ID.v execute.v wb.v opcode.vh; do
+    if [ -f "/workspace/$f" ]; then
+        cp "/workspace/$f" /tests/
+        cp "/workspace/$f" /logs/verifier/workspace/ 2>/dev/null || true
+    fi
 done
 
 cd /tests
 IMEM_DMEM="/tests/imem_dmem"
 SUITES="/tests/suites"
+mkdir -p "$IMEM_DMEM"
 
 RUN_LOG="/logs/verifier/run.log"
+
+# Per-test simulation timeout (seconds). Prevents one test from hanging the verifier.
+TEST_TIMEOUT="${TEST_TIMEOUT:-120}"
 
 run_one() {
     local name="$1"
@@ -43,9 +53,18 @@ run_one() {
         return 1
     fi
     set +e
-    local vvp_out
-    vvp_out=$(vvp riscv_output 2>&1)
-    local vvp_exit=$?
+    local vvp_out vvp_exit
+    if command -v timeout >/dev/null 2>&1; then
+        vvp_out=$(timeout "$TEST_TIMEOUT" vvp riscv_output 2>&1)
+        vvp_exit=$?
+        if [ $vvp_exit -eq 124 ]; then
+            vvp_out="FAIL: Simulation timed out after ${TEST_TIMEOUT}s
+$vvp_out"
+        fi
+    else
+        vvp_out=$(vvp riscv_output 2>&1)
+        vvp_exit=$?
+    fi
     set -e
     [ -f /tests/pipeline.vcd ] && cp /tests/pipeline.vcd "/logs/verifier/vcd/${name}.vcd"
     rm -f riscv_output pipeline.vcd

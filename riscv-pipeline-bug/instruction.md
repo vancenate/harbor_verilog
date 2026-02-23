@@ -25,8 +25,8 @@ The pipeline in `/workspace/` has **one bug**. Fix it so **all tests pass**.
 
 When the program completes (exception raised), **`regs[15]`** must equal **102**.
 
-A waveform (**`waveform.png`**) is provided for reference.
+A waveform (**`waveform.png`**) may be provided for reference. 
 
 ## What you can change
 
-You may edit any file in `/workspace/` (e.g. `IF_ID.v`, `execute.v`, `wb.v`, `pipeline.v`, `opcode.vh`). The testbench and test programs are fixed.
+Edit only the existing design files in `/workspace/`: **`pipeline.v`**, **`IF_ID.v`**, **`execute.v`**, **`wb.v`**, **`opcode.vh`**. Use all five files—do not delete or omit any. Only modify the code to fix the bug. Do not create any new design files. The testbench and test programs are fixed. The verifier requires all five files to be present; if any are missing, the run fails.

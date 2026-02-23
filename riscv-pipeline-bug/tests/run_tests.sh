@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run one or all suite tests. Usage: ./run_tests.sh [addition] [sort] [negative] [fibonacci] [shifting] [xor]
-# Run from riscv-pipeline-incomplete/tests/
+# Run from riscv-pipeline-bug/tests/
 
 set -e
 TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -10,18 +10,17 @@ SUITES_DIR="$TESTS_DIR/suites"
 IMEM_DMEM="$TESTS_DIR/imem_dmem"
 
 if [ ! -d "$SUITES_DIR" ] || [ ! -d "$IMEM_DMEM" ]; then
-    echo "ERROR: suites/ or imem_dmem/ not found. Run from riscv-pipeline-incomplete/tests/"
+    echo "ERROR: suites/ or imem_dmem/ not found. Run from riscv-pipeline-bug/tests/"
     exit 1
 fi
-# For local runs, copy design files from environment/starter and solution if not present (Harbor copies from /workspace)
+# For local runs: if no design in tests/, copy buggy starter so the script can run (tests will fail until you fix the bug).
+# In Harbor, test.sh copies from /workspace/ (agent's submission); run_tests.sh does not use solution/.
 if [ ! -f "$TESTS_DIR/pipeline.v" ]; then
     STARTER="$TESTS_DIR/../environment/starter"
-    SOLUTION="$TESTS_DIR/../solution"
-    if [ -f "$STARTER/pipeline.v" ] && [ -f "$SOLUTION/execute.v" ]; then
-        cp "$STARTER/pipeline.v" "$STARTER/IF_ID.v" "$STARTER/wb.v" "$STARTER/opcode.vh" "$TESTS_DIR/"
-        cp "$SOLUTION/execute.v" "$TESTS_DIR/"
+    if [ -f "$STARTER/pipeline.v" ]; then
+        cp "$STARTER/pipeline.v" "$STARTER/IF_ID.v" "$STARTER/execute.v" "$STARTER/wb.v" "$STARTER/opcode.vh" "$TESTS_DIR/"
     else
-        echo "ERROR: pipeline.v not found. Copy pipeline RTL into tests/ or run from repo with environment/starter and solution/."
+        echo "ERROR: pipeline.v not found. Copy pipeline RTL into tests/ or run from repo with environment/starter/."
         exit 1
     fi
 fi
