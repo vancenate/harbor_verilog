@@ -6,6 +6,24 @@ Implement a 3-stage RISC-V (RV32I) pipeline that runs programs against a fixed t
 
 **Verilog only — no SystemVerilog.** The verifier compiles with plain Verilog (Icarus Verilog). Do not use SystemVerilog-only constructs.
 
+## Pipeline structure
+
+The following figures show the three stages, data flow, and how data and control hazards are handled.
+
+![Three stage pipeline: Fetch/Decode, Execute, Memory access and WriteBack](images/stages_function.png)
+
+![3-stage RISC-V pipeline block diagram: stages, register file, memories, data forwarding, and branch feedback to PC](images/pipeline_overview.png)
+
+### Data and control hazards
+
+**Register forwarding (data hazards):** When the data value of a register is calculated in a previous instruction and the updated value is used for the next instruction, the problem of data hazard occurs. To overcome this the updated register value is directly transfered from the writeback stage to execute stage.
+
+![Data forwarding from WB to Execute for dependent instructions](images/data_forwarding.png)
+
+**Branch penalty (control hazards):** When the branch is taken during the execute stage, it needs to stall the instructions that have been fetched into the pipeline, which causes a delay/stall of two instructions, so the extra cost of the branch is two.
+
+![Branch penalty: flush/stall after a taken jump](images/branch.png)
+
 ## Module: `pipe`
 
 - **Ports (do not change):**
@@ -42,11 +60,16 @@ Implement a 3-stage RISC-V (RV32I) pipeline that runs programs against a fixed t
 
 (Opcode/func3/func7 encodings follow RV32I; inst[30] distinguishes SUB vs ADD and SRA vs SRL.)
 
+The table below gives instruction formats (R, I, S, B, U, J), bit-level encodings, and which instructions are supported (✓) vs unsupported — treat unsupported encodings as illegal and assert `exception`.
+
+![RV32I base instruction set: formats, encodings, and support](images/supported_instruction_set.jpg)
+
 ## Memory and control
 
 - **I-mem:** Word-aligned; address `inst_mem_address[31:2]`; data on `inst_mem_read_data`; drive `inst_mem_is_ready` when requesting. The testbench drives `inst_mem_is_valid` when the data on `inst_mem_read_data` is valid for the current `inst_mem_address`. **You must advance the fetch address (the value driving `inst_mem_address`) every clock when not stalled** (or to the branch/jump target when a control transfer is taken). Do not gate updating this address on `inst_mem_is_valid`—otherwise the pipeline will not fetch subsequent instructions.
-- **D-mem:** Word-aligned; read address `dmem_read_address[31:2]`, `dmem_read_ready` when loading; write address/data/byte-enable `dmem_write_*`, `dmem_write_ready` when storing. Read data arrives on `dmem_read_data_temp`. Testbench memory supports same-cycle read-after-write.
-- **Reset:** Active-low. When `reset` is 0, the core is in reset: set PC to RESET and clear all architectural state. When `reset` is 1, the core runs. When `stall` is 1, do not change architectural state.
+- **D-mem:** Word-aligned; read address `dmem_read_address[31:2]`, `dmem_read_ready` when loading; write address/data/byte-enable `dmem_write_*`, `dmem_write_ready` when storing. Read data arrives on `dmem_read_data_temp`. **The core must use `dmem_read_valid` (not `dmem_write_valid`) to know when load data on `dmem_read_data_temp` is valid**—e.g. for stalling or committing a load result. Use `dmem_write_valid` only for write completion if needed. Testbench memory supports same-cycle read-after-write. **The address and data driven on `dmem_*` must be valid in the same cycle as the corresponding `dmem_*_ready` signal** (the testbench and memory sample at the same clock edge).
+- **Store immediate:** Stores use S-type immediate; effective address is rs1 + sign-extended imm[31:25],[11:7] (not I-type imm[31:20]).
+- **Reset:** Active-low. When `reset` is 0, the core is in reset: set PC to RESET and clear architectural state. When `reset` is 1, the core runs. When `stall` is 1, do not change architectural state.
 - **Exception:** Assert `exception` for illegal instruction or misaligned fetch (e.g. `inst_mem_address[1:0] != 0`). When asserted, the testbench ends the run and reports pass/fail.
 
 Correctness is checked by running the provided test programs; the simulation must complete without timeout or address error and report PASS.

@@ -33,6 +33,21 @@ begin
     $dumpvars(0,pipe);
 end
 
+// Debug: run with +debug to print each cycle (PC, instruction, operands, result, a4/a5)
+wire debug = $test$plusargs("debug");
+integer cycle_count;
+initial cycle_count = 0;
+always @(posedge clk) begin
+    if (debug && reset && !stall) begin
+        cycle_count = cycle_count + 1;
+        $display("--- cycle %0d --- pc=%x inst=%x rdata1=%d rdata2=%d result=%d wb_dest=%d wb_mem_to_reg=%b regs[a4]=%d regs[a5]=%d",
+            cycle_count, pipe.inst_fetch_pc, pipe.instruction,
+            pipe.reg_rdata1, pipe.reg_rdata2, pipe.result,
+            pipe.wb_dest_reg_sel, pipe.wb_mem_to_reg,
+            pipe.regs[14], pipe.regs[15]);
+    end
+end
+
 initial
 begin
 
@@ -82,9 +97,12 @@ localparam EXPECTED_RESULT = 32'd`EXPECTED_RESULT;
 localparam EXPECTED_RESULT = 32'd102;
 `endif
 
+// Check result one cycle after exception so ADD's writeback has committed (nonblocking reg update).
+reg exception_prev;
+always @(posedge clk) exception_prev <= exception;
 always @(posedge clk)
 begin
-    if (exception)
+    if (exception_prev)
     begin
         if (pipe.regs[15] == EXPECTED_RESULT)
         begin

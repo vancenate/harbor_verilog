@@ -7,28 +7,23 @@ set -e
 
 echo "=== 3-stage RISC-V pipeline verifier ==="
 
-# Require pipeline entry point; other .v/.vh files are optional
+# Require pipeline entry point
 if [ ! -f /workspace/pipeline.v ]; then
-    echo "ERROR: /workspace/pipeline.v not found. Provide pipeline.v and any other .v/.vh files you need."
+    echo "ERROR: /workspace/pipeline.v not found."
     echo 0 > /logs/verifier/reward.txt
     exit 1
 fi
 
-# Copy pipeline and any included sources into tests (do not overwrite tb or memory)
-cp /workspace/pipeline.v /tests/pipeline.v
-for f in /workspace/*.v /workspace/*.vh; do
+# Copy all workspace files into tests (do not overwrite tb or memory)
+mkdir -p /logs/verifier/vcd
+mkdir -p /logs/verifier/workspace
+for f in /workspace/*; do
     [ -f "$f" ] || continue
     case "$(basename "$f")" in
         tb_pipeline.v|memory.v) ;;
-        *) cp "$f" /tests/ ;;
+        *) cp "$f" /tests/
+           cp "$f" /logs/verifier/workspace/ 2>/dev/null || true ;;
     esac
-done
-
-# Save copy for logs
-mkdir -p /logs/verifier/vcd
-mkdir -p /logs/verifier/workspace
-for f in /workspace/*.v /workspace/*.vh; do
-    [ -f "$f" ] && cp "$f" /logs/verifier/workspace/
 done
 
 cd /tests
@@ -84,6 +79,9 @@ run_one() {
 echo "--- Running addition test (expected 102) ---"
 run_one addition 102 "ADDITION TEST" || true
 
+echo "--- Running load_use test (expected 102, exposes load-use hazard) ---"
+run_one load_use 102 "LOAD_USE TEST" || true
+
 echo "--- Running sort test (expected 3) ---"
 run_one sort 3 "SORT TEST" || true
 
@@ -100,7 +98,7 @@ echo "--- Running xor test (expected 5) ---"
 run_one xor 5 "XOR TEST" || true
 
 # Pass only if all tests show PASSED (searchable in run.log)
-if grep -q "ADDITION TEST PASSED" "$RUN_LOG" && grep -q "SORT TEST PASSED" "$RUN_LOG" && grep -q "NEGATIVE TEST PASSED" "$RUN_LOG" && grep -q "FIBONACCI TEST PASSED" "$RUN_LOG" && grep -q "SHIFTING TEST PASSED" "$RUN_LOG" && grep -q "XOR TEST PASSED" "$RUN_LOG"; then
+if grep -q "ADDITION TEST PASSED" "$RUN_LOG" && grep -q "LOAD_USE TEST PASSED" "$RUN_LOG" && grep -q "SORT TEST PASSED" "$RUN_LOG" && grep -q "NEGATIVE TEST PASSED" "$RUN_LOG" && grep -q "FIBONACCI TEST PASSED" "$RUN_LOG" && grep -q "SHIFTING TEST PASSED" "$RUN_LOG" && grep -q "XOR TEST PASSED" "$RUN_LOG"; then
     echo "PASS: Pipeline completed all tests successfully."
     echo 1 > /logs/verifier/reward.txt
     exit 0
