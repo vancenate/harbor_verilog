@@ -6,7 +6,7 @@
 
 set -e
 
-echo "=== PicoRV32 bug verifier ==="
+echo "=== PicoRV32 verification verifier ==="
 
 if [ ! -f /workspace/picorv32.v ]; then
     echo "ERROR: /workspace/picorv32.v not found. Provide picorv32.v in the workspace."
