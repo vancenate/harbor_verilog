@@ -384,7 +384,7 @@ module picorv32 #(
 	assign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata : mem_rdata_q;
 
 	assign mem_rdata_latched = COMPRESSED_ISA && mem_la_use_prefetched_high_word ? {16'bx, mem_16bit_buffer} :
-			COMPRESSED_ISA && mem_la_secondword ? {mem_rdata_latched_noshuffle[15:0], mem_16bit_buffer} :
+			COMPRESSED_ISA && mem_la_secondword ? {mem_16bit_buffer, mem_rdata_latched_noshuffle[15:0]} :
 			COMPRESSED_ISA && mem_la_firstword ? {16'bx, mem_rdata_latched_noshuffle[31:16]} : mem_rdata_latched_noshuffle;
 
 	always @(posedge clk) begin
@@ -442,7 +442,7 @@ module picorv32 #(
 							mem_rdata_q[31:20] <= {2'b0, mem_rdata_latched[10:7], mem_rdata_latched[12:11], mem_rdata_latched[5], mem_rdata_latched[6], 2'b00};
 						end
 						3'b010: begin // C.LW
-							mem_rdata_q[31:20] <= {5'b0, mem_rdata_latched[5], mem_rdata_latched[12:10], mem_rdata_latched[6], 2'b00};
+							mem_rdata_q[31:20] <= {5'b0, mem_rdata_latched[6], mem_rdata_latched[12:10], mem_rdata_latched[5], 2'b00};
 							mem_rdata_q[14:12] <= 3'b 010;
 						end
 						3'b 110: begin // C.SW

@@ -1296,7 +1296,7 @@ module picorv32 #(
 		clear_prefetched_high_word = clear_prefetched_high_word_q;
 		if (!prefetched_high_word)
 			clear_prefetched_high_word = 0;
-		if ((latched_branch && irq_state) || !resetn)
+		if (latched_branch || irq_state || !resetn)
 			clear_prefetched_high_word = COMPRESSED_ISA;
 	end
 

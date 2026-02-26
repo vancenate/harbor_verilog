@@ -1,0 +1,25 @@
+version = "1.0"
+
+[metadata]
+name = "pico_rv32_bug_multi"
+author_name = "Nate Vance"
+email = "vancenathan0@gmail.com"
+difficulty = "hard"
+
+[verifier]
+timeout_sec = 900.0
+
+[agent]
+timeout_sec = 900.0
+
+[environment]
+build_timeout_sec = 900.0
+cpus = 1
+memory_mb = 2048
+storage_mb = 10240
+gpus = 0
+allow_internet = true
+
+[verifier.env]
+
+[solution.env]
