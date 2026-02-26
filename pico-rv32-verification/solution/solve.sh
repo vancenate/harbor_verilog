@@ -1,5 +1,5 @@
 #!/bin/bash
-# Oracle solution for pico-rv32-bug task.
+# Oracle solution for pico-rv32-verification task.
 # Copies the golden PicoRV32 core into /workspace so the verifier passes.
 
 set -e

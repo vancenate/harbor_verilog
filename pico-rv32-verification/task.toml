@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-name = "pico_rv32_bug"
+name = "pico_rv32_verification"
 author_name = "Nate Vance"
 email = "vancenathan0@gmail.com"
 difficulty = "hard"
@@ -10,7 +10,7 @@ difficulty = "hard"
 timeout_sec = 900.0
 
 [agent]
-timeout_sec = 900.0
+timeout_sec = 1200.0
 
 [environment]
 build_timeout_sec = 900.0

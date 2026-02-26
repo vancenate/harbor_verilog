@@ -1,5 +1,5 @@
 #!/bin/bash
-# Verifier for pico-rv32-bug task.
+# Verifier for pico-rv32-verification task.
 # Expects /workspace/picorv32.v to contain the (possibly buggy) core.
 # Compiles with the provided testbench and firmware image; PASS iff
 # simulation prints "ALL TESTS PASSED." and exits cleanly.
@@ -16,11 +16,13 @@ if [ ! -f /workspace/picorv32.v ]; then
 fi
 
 mkdir -p /logs/verifier
-mkdir -p /logs/verifier/vcd
 mkdir -p /logs/verifier/workspace
 
-# Save a copy of the workspace core for inspection.
+# Save workspace design and any agent-created testbench for inspection.
 cp /workspace/picorv32.v /logs/verifier/workspace/ 2>/dev/null || true
+for f in /workspace/*.v; do
+    [ -f "$f" ] && [ "$(basename "$f")" != "picorv32.v" ] && cp "$f" /logs/verifier/workspace/ || true
+done
 
 cd /tests
 
@@ -47,10 +49,6 @@ set -e
     echo "========== PicoRV32 testbench output =========="
     echo "$vvp_out"
 } | tee "$RUN_LOG"
-
-if echo "$vvp_out" | grep -q "testbench.vcd"; then
-    [ -f testbench.vcd ] && cp testbench.vcd /logs/verifier/vcd/testbench.vcd || true
-fi
 
 rm -f picorv32_output testbench.vcd
 
