@@ -8,6 +8,8 @@ Design and evaluation:
 How to run your own tests:
 - Instantiate `picorv32_axi` with the same parameters (COMPRESSED_ISA, ENABLE_MUL, ENABLE_DIV, ENABLE_IRQ, ENABLE_TRACE) so your tests match evaluation.
 - Write a testbench (for example `my_testbench.v`) that instantiates the core and a memory model, loads a program into memory, and checks for correct behavior.
+- The environment provides the RISC-V GCC toolchain (`riscv64-unknown-elf-gcc`); use `-march=rv32imc -mabi=ilp32` for this core. You can compile C code to binaries and then to `.hex` (e.g. `riscv64-unknown-elf-objcopy -O binary firmware.elf firmware.bin` then `python3 makehex.py firmware.bin 32768 > firmware.hex`) to build fuller test suites and load them from your testbench. The script `makehex.py` is in the workspace.
+
 - You can simulate with Icarus Verilog, for example:
   - `iverilog -g2012 -o sim.vvp my_testbench.v picorv32.v`
   - `vvp -N sim.vvp`
